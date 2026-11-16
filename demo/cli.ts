@@ -1,9 +1,10 @@
 import { runDemo } from './run.js';
+import { demoCommand } from './safety.js';
 import { demoAccounts, demoAdministrators, demoDiscoverable, demoMembers, demoPassword } from './fixtures.js';
 
 const [mode, ...args] = process.argv.slice(2);
 try {
-  if (mode !== 'seed' && mode !== 'reset') throw new Error('Use node --import tsx plugins/gs1/demo/cli.ts seed, or node --import tsx plugins/gs1/demo/cli.ts reset --yes');
+  if (mode !== 'seed' && mode !== 'reset') throw new Error(`Use ${demoCommand('seed')}, or ${demoCommand('reset')}`);
   if (mode === 'reset') console.log('DESTRUCTIVE RESET: all local Neo4j application data and all objects in kannabi-photos will be deleted, then replaced with demo data.');
   const result = await runDemo(mode, args, process.env);
   console.log(`Created ${result.assets} synthetic Assets across ${result.groups} Groups for ${result.accounts} accounts. Evaluator scopes: ${JSON.stringify(result.scopes)}.`);
@@ -18,6 +19,6 @@ try {
   console.log('Start your local application and open ' + process.env.APP_URL);
 } catch (error) {
   console.error(error instanceof Error ? error.message : 'Demo command failed');
-  console.error('Do not start the application after a partial reset/seed failure. Fix the cause, then rerun node --import tsx plugins/gs1/demo/cli.ts reset --yes.');
+  console.error(`Do not start the application after a partial reset/seed failure. Fix the cause, then rerun ${demoCommand('reset')}.`);
   process.exitCode = 1;
 }
