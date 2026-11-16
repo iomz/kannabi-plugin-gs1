@@ -44,7 +44,7 @@ export async function runDemo(mode: DemoMode, args: string[], env: NodeJS.Proces
     const existingObjects = await objects();
     const existing = await session.run("MATCH (n) WHERE NOT (n:Settings AND n.key = 'instance') RETURN count(n) AS count");
     if (mode === 'seed' && (existing.records[0].get('count').toNumber() || existingObjects.length)) {
-      throw new Error('Seed requires empty application data and media. Nothing changed. To replace local data, use demo:reset -- --yes.');
+      throw new Error('Seed requires empty application data and media. Nothing changed. To replace local data, use node --import tsx plugins/gs1/demo/cli.ts reset --yes.');
     }
     // Load every fixture before touching data, so missing images fail without partial setup.
     const photos = new Map<string, Buffer>();
