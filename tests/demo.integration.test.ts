@@ -57,7 +57,7 @@ test('development demo seed and full reset on disposable Neo4j and Alarik', { sk
     });
   }
   await t.test('seed creates deterministic content through normal domain and authentication paths', async () => {
-    const output = await promisify(execFile)('pnpm', ['demo:seed'], { env });
+    const output = await promisify(execFile)(process.execPath, ['--import', 'tsx', 'plugins/gs1/demo/cli.ts', 'seed'], { env });
     assert.match(output.stdout, /Created 140 synthetic Assets/);
     assert.equal((await snapshot()).length, 140);
     assert.equal((await keys()).length, 47);
@@ -172,7 +172,7 @@ test('development demo seed and full reset on disposable Neo4j and Alarik', { sk
   await t.test('confirmed reset replaces all local data and objects without bookkeeping', async () => {
     await s3.send(new PutObjectCommand({ Bucket: bucket, Key: 'unrelated-local-object', Body: 'local development data' }));
     await (await IdentityStore.open(driver, composition)).createOwner('Old local Owner');
-    const output = await promisify(execFile)('pnpm', ['demo:reset', '--', '--yes'], { env });
+    const output = await promisify(execFile)(process.execPath, ['--import', 'tsx', 'plugins/gs1/demo/cli.ts', 'reset', '--yes'], { env });
     assert.match(output.stdout, /DESTRUCTIVE RESET/);
     assert.deepEqual(await snapshot(), before);
     // Counters must not leak across resets: a fresh namespace starts over.

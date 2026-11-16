@@ -1,10 +1,16 @@
 export type DemoMode = 'seed' | 'reset';
+
+/** The command a person runs, as the README gives it: the opt-in and the
+ * local `.env` belong to the command, so a message that suggests one names
+ * them too, or the suggestion fails the checks below. */
+export const demoCommand = (mode: DemoMode) =>
+  `KANNABI_DEMO=local node --import tsx --env-file-if-exists=.env plugins/gs1/demo/cli.ts ${mode === 'reset' ? 'reset --yes' : 'seed'}`;
 export function demoConfiguration(mode: DemoMode, args: string[], env: NodeJS.ProcessEnv) {
   const flags = args[0] === '--' ? args.slice(1) : args;
   if (mode === 'reset' && (flags.length !== 1 || flags[0] !== '--yes')) {
-    throw new Error('RESET DELETES ALL application data and every object in the configured media bucket. Run pnpm demo:reset -- --yes to confirm.');
+    throw new Error(`RESET DELETES ALL application data and every object in the configured media bucket. Run ${demoCommand('reset')} to confirm.`);
   }
-  if (mode === 'seed' && flags.length) throw new Error('Usage: pnpm demo:seed');
+  if (mode === 'seed' && flags.length) throw new Error(`Usage: ${demoCommand('seed')}`);
   if (env.KANNABI_DEMO !== 'local' || (env.NODE_ENV && env.NODE_ENV !== 'development' && env.NODE_ENV !== 'test')) {
     throw new Error('Demo commands require KANNABI_DEMO=local and a non-production development environment.');
   }
