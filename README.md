@@ -82,7 +82,7 @@ GTIN/JAN accepts 8, 12, 13, or 14 digits with a valid check digit and normalizes
 GS1 `req=` and `ex=` association rules are applied to the AIs of one identifier, the coherent AI element string a scheme represents.
 They are deliberately not applied across an Asset's identifiers: the Syntax Dictionary scopes those rules to the combined data marking a physical item, whereas an Asset's identifiers are independent records attached at different times from different sources, most of which are not marked on the item at all.
 An Asset carrying a manufacturer's SGTIN beside an owner-assigned GIAI is therefore valid.
-Across an Asset, the plugin applies only its own coherence rules: every AI (01) an Asset carries must name the same trade item, and every AI (8003) asset type it carries must name the same returnable asset type; Kannabi core adds that the same identifier may not appear twice.
+Across an Asset, the plugin applies only its own coherence rules: while GTIN consistency is enforced, which it is by default, every AI (01) an Asset carries must name the same trade item; and every AI (8003) asset type it carries must name the same returnable asset type. Kannabi core adds that the same identifier may not appear twice.
 Identifiers of different schemes coexist freely — a Kannabi-issued GIAI, a serialised GRAI and an SGTIN on one Asset are three identities from three schemes, not a conflict.
 
 An identifier supplied through **Record existing identifier** is an externally assigned value and is stored as syntax only; that operation neither issues the value nor claims its origin.
