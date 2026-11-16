@@ -58,6 +58,7 @@ Core restores a stored identifier through its scheme, so without the plugin thos
 
 The plugin's tests are under `tests/` and run from the Kannabi checkout, with `pnpm test` and `pnpm test:integration`.
 They run under `test-composition.mjs`, which composes this plugin alone, so they hold what Kannabi does with GS1 installed whatever else a deployment lists.
+CI checks this repository inside a Kannabi checkout at `plugins/gs1`, against Kannabi's `main` on every change here and once a day, because Kannabi's own CI names no plugin; a run started by hand may name another Kannabi ref.
 
 ## GS1 identifier issuance
 
