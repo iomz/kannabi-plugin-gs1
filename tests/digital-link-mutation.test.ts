@@ -36,7 +36,7 @@ const asset = {
   groups: [{ key: 'workshop', name: 'Workshop' }],
   reportedBy: { key: 'alex', name: 'Alex', status: 'active' },
   reportedAt: '2026-01-01T00:00:00Z',
-  identifiers: [{ key: 'i1', ...sgtin }], photos: [], issuances: [],
+  identifiers: [{ key: 'i1', ...sgtin }], formerIdentifiers: [], photos: [], issuances: [],
 };
 
 const loaderData = {

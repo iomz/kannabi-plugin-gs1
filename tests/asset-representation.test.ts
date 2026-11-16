@@ -41,6 +41,11 @@ const populated: Asset = Object.freeze({
   owner: { key: 'owner-1', name: 'Physics Department' },
   groups: [{ key: 'group-1', name: 'Workshop' }],
   isPublic: true,
+  // A label once on the Asset and detached, kept as Kannabi held it.
+  formerIdentifiers: [{ key: 'f1', scheme: 'sgtin', canonical: '(01)04901234567894(21)RETIRED1',
+    level: 'individual' as const, policyVersion: gtin.policyVersion,
+    attachment: { acceptedBy: reporter, acceptedAt: '2026-06-22T00:00:04.000Z', assertedBy: null, basis: null },
+    detachment: { acceptedBy: reporter, acceptedAt: '2026-06-24T00:00:00.000Z', assertedBy: null, basis: null } }],
   photos: [{ key: 'p1', contentType: 'image/png', size: 1024, createdAt: '2026-06-22T00:00:02.000Z' }],
 });
 
@@ -70,12 +75,16 @@ test('every instant is either an act in Kannabi or what a source says', () => {
   // The only places an instant can be. Each is the `at` of something Kannabi
   // did, or the source's own recordedAt: there is no slot an acquisition,
   // loan or other physical event could occupy, so none can be read as one.
-  const kannabiClock = /^(kannabi\.(reported|lastChange)\.at|kannabi\.photos\[\]\.receivedAt|identifiers\[\]\.accepted\.at|extensions\.gs1\.issued\[\]\.at)$/;
+  const kannabiClock = /^(kannabi\.(reported|lastChange)\.at|kannabi\.photos\[\]\.receivedAt|identifiers\[\]\.accepted\.at|kannabi\.formerIdentifiers\[\]\.(accepted|detached)\.at|extensions\.gs1\.issued\[\]\.at)$/;
   const instants = leaves(json(assetRecord(populated, schemes, extensions)))
     .filter(([, value]) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value));
   assert.ok(instants.length >= 6);
   for (const [path] of instants) {
     assert.ok(kannabiClock.test(path) || path === 'source.says.recordedAt', `${path} is an instant of unstated standing`);
+  }
+  // A detached identifier's acceptance and detachment are both Kannabi's acts.
+  for (const path of ['kannabi.formerIdentifiers[].accepted.at', 'kannabi.formerIdentifiers[].detached.at']) {
+    assert.ok(instants.some(([found]) => found === path), `${path} is not in the record`);
   }
   // The source's registration time is reachable only as what the source says.
   assert.deepEqual(instants.filter(([, value]) => value === populated.sourceRecord!.recordedAt)

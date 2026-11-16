@@ -109,7 +109,7 @@ test('Asset name and visibility submit independently through their own fetchers'
     element: createElement(AssetPage, { loaderData: {
       asset: { id, name: 'Before', isPublic: false, owner: null, groups: [group],
         reportedBy: { key: 'actor', name: 'Reporter', status: 'active' }, reportedAt: '2026-01-01T00:00:00Z',
-        identifiers: [], photos: [], issuances: [] },
+        identifiers: [], formerIdentifiers: [], photos: [], issuances: [] },
       settings: { displayTimezone: 'UTC' }, canEdit: true, authenticated: true, canViewReporterProfile: false,
       nativeUri: `https://kannabi.test/asset/${id}`, surfacedUri: `https://kannabi.test/asset/${id}`,
       plugins: { gs1: { ...gs1Data, namespaces: [{ key: 'eligible', gcp: '0614141' }] } }, digitalLinks: {}, controlled: [], canGrant: false,
