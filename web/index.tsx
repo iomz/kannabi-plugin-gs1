@@ -18,12 +18,16 @@ import { gs1AssetPage } from './asset-page';
  * policy. A web client built without this module shows none of it and lacks
  * nothing.
  */
+const offerOrder = ['sgtin', ...identifierSchemes.filter((id) => id !== 'sgtin')] as const;
+
 export const gs1Web: WebPlugin = {
   id: 'gs1',
   // What an SGTIN or a GIAI is belongs to GS1, so each scheme's name links to
   // GS1's own reference for the Application Identifier that distinguishes it
   // rather than to a Kannabi paraphrase of a standard Kannabi does not own.
-  schemes: identifierSchemes.map((id) => ({
+  // Offered in this order, and Kannabi chooses the first: an SGTIN is the one
+  // a person most often has in hand, printed on the item beside its GTIN.
+  schemes: offerOrder.map((id) => ({
     id, label: schemeLabels[id], description: schemeDescriptions[id], inputs: schemeInputs[id],
     reference: { href: schemeReference[id], label: 'GS1 reference' },
     policyLabel: 'GS1 policy', addressLabel: 'GS1 Digital Link',
