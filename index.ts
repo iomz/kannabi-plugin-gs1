@@ -22,7 +22,7 @@ export const gs1Plugin: PluginDefinition<Gs1Store> = Object.freeze({
   manifest: Object.freeze({
     id: 'gs1',
     name: 'GS1 identifiers',
-    version: '0.1.0',
+    version: '0.1.1',
     contract: [1],
     requires: [],
     contributes: [
