@@ -34,7 +34,7 @@ function loaderData(asset: Record<string, unknown> = {}, rest: Record<string, un
       groups: [{ key: 'workshop', name: 'Workshop' }],
       reportedBy: { key: 'alex', name: 'Alex', status: 'active' as const },
       reportedAt: '2026-09-29T11:00:00.000Z',
-      identifiers: [], photos: [], issuances: [], provenance: null, sourceRecord: null, ...asset,
+      identifiers: [], formerIdentifiers: [], photos: [], issuances: [], provenance: null, sourceRecord: null, ...asset,
     },
     canEdit: true, canViewReporterProfile: false, authenticated: true,
     settings: { displayTimezone: 'UTC', showAssetId: false, showIdentifierPolicyVersion: false },
