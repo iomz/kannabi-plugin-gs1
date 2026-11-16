@@ -39,7 +39,7 @@ Name the plugin in the Kannabi checkout's plugin list, `kannabi.plugins.json`, p
 ```json
 {
   "plugins": [
-    { "id": "gs1", "repository": "https://github.com/iomz/kannabi-plugin-gs1.git", "ref": "v0.1.1" }
+    { "id": "gs1", "repository": "https://github.com/iomz/kannabi-plugin-gs1.git", "ref": "v0.1.2" }
   ]
 }
 ```
@@ -52,13 +52,47 @@ That clones this repository into `plugins/gs1/` and composes it; build Kannabi a
 The plugin is source built with Kannabi, not a standalone package: it imports Kannabi's modules by relative path.
 
 A Kannabi database that already holds GS1 identifiers must keep this plugin listed.
-Core restores a stored identifier through its scheme, so without the plugin those identifiers have no scheme to restore them.
+Core restores a stored identifier through its scheme, so without the plugin Kannabi refuses to start and names the GS1 schemes it found stored.
 
 ## Tests
 
 The plugin's tests are under `tests/` and run from the Kannabi checkout, with `pnpm test` and `pnpm test:integration`.
 They run under `test-composition.mjs`, which composes this plugin alone, so they hold what Kannabi does with GS1 installed whatever else a deployment lists.
 CI checks this repository inside a Kannabi checkout at `plugins/gs1`, against Kannabi's `main` on every change here and once a day, because Kannabi's own CI names no plugin; a run started by hand may name another Kannabi ref.
+
+## GS1 identifiers
+
+This plugin's toolkit is the only place GS1 rules are applied.
+It accepts GTIN (AI 01), SGTIN (AI 01 with AI 21), GRAI (AI 8003) and GIAI (AI 8004), validates components, and derives everything else:
+
+| Scheme | Input | Canonical form | Identifies |
+| --- | --- | --- | --- |
+| GTIN | `gtin` | `(01)00614141123452` | the trade item class |
+| SGTIN | `gtin`, `serial` | `(01)00614141123452(21)A1B2` | this Asset |
+| GRAI | `assetType`, optional `serial` | `(8003)00614141234561…` | the asset type, or this Asset when serialised |
+| GIAI | complete existing `assetReference` | `(8004)0614141ASSET001` | this Asset |
+
+The identification level is derived from GS1 semantics and is never supplied or edited by a caller.
+A `:ClassIdentifier` holding a GTIN is that GTIN, and nothing more.
+Stored identifiers keep only their canonical form, and components are re-derived on every read.
+That reversal is positional and is safe only because every component a scheme renders before its last one has a fixed length; `assertReversibleSchemes` turns any future scheme that breaks the property into a test failure rather than a corrupt read.
+Serials preserve case, leading zeros, and literal punctuation; they are never trimmed or URI-decoded.
+GTIN/JAN accepts 8, 12, 13, or 14 digits with a valid check digit and normalizes to 14 digits.
+
+GS1 `req=` and `ex=` association rules are applied to the AIs of one identifier, the coherent AI element string a scheme represents.
+They are deliberately not applied across an Asset's identifiers: the Syntax Dictionary scopes those rules to the combined data marking a physical item, whereas an Asset's identifiers are independent records attached at different times from different sources, most of which are not marked on the item at all.
+An Asset carrying a manufacturer's SGTIN beside an owner-assigned GIAI is therefore valid.
+Across an Asset, the plugin applies only its own coherence rules: while GTIN consistency is enforced, which it is by default, every AI (01) an Asset carries must name the same trade item; and every AI (8003) asset type it carries must name the same returnable asset type. Kannabi core adds that the same identifier may not appear twice.
+Identifiers of different schemes coexist freely — a Kannabi-issued GIAI, a serialised GRAI and an SGTIN on one Asset are three identities from three schemes, not a conflict.
+
+An identifier supplied through **Record existing identifier** is an externally assigned value and is stored as syntax only; that operation neither issues the value nor claims its origin.
+For a GIAI, enter the complete existing AI 8004 value, including its company prefix.
+Locating a GS1 Company Prefix inside an arbitrary key requires the GS1 GCP Length Table, which is not openly available, so Kannabi makes no claim about prefix ownership or boundary for a value it did not build, and a stored identifier is never evidence that Kannabi allocated it.
+
+At startup the plugin migrates any pre-Phase-2 Asset from the single required SGTIN or GRAI claim to the external identifier model, under its own migration lock.
+A stored SGTIN already kept its components apart; a stored GRAI is decomposed into its asset type and serial.
+Legacy shape is migrated, and anything else is corruption: startup fails closed rather than repairing or discarding it.
+No class-level GTIN is materialised from an SGTIN, because that fact stays derivable.
 
 ## GS1 identifier issuance
 
@@ -307,6 +341,16 @@ These exist only in a Kannabi built with this plugin. Its HTTP routes live under
 | Read the GTIN consistency policy | yes | `GET /api/gs1/settings` | no |
 | Enforce or relax GTIN consistency | yes | `PATCH /api/gs1/settings` | no |
 | List Assets blocking GTIN consistency | yes, when enabling is refused | `GET /api/gs1/admin/gtin-conflicts`, and the `409` refusing `PATCH /api/gs1/settings` | no |
+
+### What the absences mean
+
+**GTIN consistency is an administrator setting with no MCP control.** Turning it off lets an instance record identifiers whose GTINs disagree — a legacy corpus that wrote its own numbering in SGTIN syntax — and every surface then shows both, each with its own basis. Turning it back on is refused with `409` while any Asset still holds a conflict; the refusal names the conflicting Assets the administrator can read and counts the rest, and nothing is removed to make it succeed. Once every conflict is resolved, enabling succeeds and new conflicts are refused.
+
+**The issuance ledger is listed only over MCP.** Per-Asset issuances reach all three surfaces through the Asset representation, which is what answers "did Kannabi issue this value" — the question allocation provenance exists for. A ledger-wide listing is a different question, about a namespace rather than an Asset, and so far only an agent inspecting allocation provenance has needed it. Allocation provenance is read from the ledger alone: an Asset whose stored GIAI merely begins with a managed company prefix is not reported as Kannabi-issued.
+
+**A Digital Link address is a document address.** Kannabi dereferences the forms it supports by serving the Asset page at them, outside `/api`; there is no JSON endpoint that takes one. MCP reports the path an identifier corresponds to and does not resolve it, because resolving it would grant nothing a `get_asset` call does not already answer.
+
+**A Group's GS1 Company Prefixes are a view of the Group's page, pending their redesign ([iomz/kannabi#58](https://github.com/iomz/kannabi/issues/58)).** Like the rest of a Group's page, they are web and HTTP only.
 
 ## Development/demo dataset
 
