@@ -43,7 +43,8 @@ const populated: Asset = Object.freeze({
   isPublic: true,
   // A label once on the Asset and detached, kept as Kannabi held it.
   formerIdentifiers: [{ key: 'f1', scheme: 'sgtin', canonical: '(01)04901234567894(21)RETIRED1',
-    level: 'individual' as const, policyVersion: gtin.policyVersion, attachment: null,
+    level: 'individual' as const, policyVersion: gtin.policyVersion,
+    attachment: { acceptedBy: reporter, acceptedAt: '2026-06-22T00:00:04.000Z', assertedBy: null, basis: null },
     detachment: { acceptedBy: reporter, acceptedAt: '2026-06-24T00:00:00.000Z', assertedBy: null, basis: null } }],
   photos: [{ key: 'p1', contentType: 'image/png', size: 1024, createdAt: '2026-06-22T00:00:02.000Z' }],
 });
@@ -80,6 +81,10 @@ test('every instant is either an act in Kannabi or what a source says', () => {
   assert.ok(instants.length >= 6);
   for (const [path] of instants) {
     assert.ok(kannabiClock.test(path) || path === 'source.says.recordedAt', `${path} is an instant of unstated standing`);
+  }
+  // A detached identifier's acceptance and detachment are both Kannabi's acts.
+  for (const path of ['kannabi.formerIdentifiers[].accepted.at', 'kannabi.formerIdentifiers[].detached.at']) {
+    assert.ok(instants.some(([found]) => found === path), `${path} is not in the record`);
   }
   // The source's registration time is reachable only as what the source says.
   assert.deepEqual(instants.filter(([, value]) => value === populated.sourceRecord!.recordedAt)
