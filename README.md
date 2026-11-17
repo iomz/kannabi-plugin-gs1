@@ -39,7 +39,7 @@ Name the plugin in the Kannabi checkout's plugin list, `kannabi.plugins.json`, p
 ```json
 {
   "plugins": [
-    { "id": "gs1", "repository": "https://github.com/iomz/kannabi-plugin-gs1.git", "ref": "v0.1.2" }
+    { "id": "gs1", "repository": "https://github.com/iomz/kannabi-plugin-gs1.git", "ref": "v0.1.3" }
   ]
 }
 ```
